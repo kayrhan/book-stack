@@ -1,0 +1,55 @@
+name: book-stack
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./build/web/Dockerfile
+    ports:
+      - "9000:80"
+    depends_on:
+      - pgsql
+    networks:
+      - web
+  nginx:
+    build:
+      context: ./build/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+      - pgsql
+    networks:
+      - web
+  pgsql:
+    image: postgres:16.3-bookworm
+    ports:
+      - '${FORWARD_DB_PORT:-5432}:5432'
+    environment:
+      POSTGRES_DB: '${DB_DATABASE}'
+      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+    networks:
+      - web
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - '-q'
+        - '-d'
+        - '${DB_DATABASE}'
+        - '-U'
+        - '${DB_USERNAME}'
+      retries: 3
+      timeout: 5s
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+    db_data:
+        driver: local

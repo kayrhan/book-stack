@@ -7,13 +7,11 @@ RUN apt-get update \
     && docker-php-ext-install zip pdo_pgsql \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
+COPY .env.example .env
 COPY --from=composer:2.7.6 /usr/bin/composer /usr/bin/composer
 RUN composer install --optimize-autoloader \
-    && cp .env.example .env \
     && php artisan key:generate \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache \
+    && php artisan optimize \
     && php artisan storage:link
 RUN chown -R www-data:www-data /var/www/html
 COPY /build/web/php.ini $PHP_INI_DIR/conf.d/

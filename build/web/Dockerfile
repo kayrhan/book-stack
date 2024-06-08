@@ -1,4 +1,4 @@
-FROM php:8.3.7-fpm
+FROM php:8.3.8-fpm
 WORKDIR /var/www/html
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \

@@ -1,39 +1,28 @@
 name: book-stack
-
 services:
-  web:
-    build:
-      context: .
-      dockerfile: ./build/web/Dockerfile
-    ports:
-      - "9000:80"
-    depends_on:
-      - pgsql
-    networks:
-      - web
   nginx:
     build:
       context: ./build/nginx
       dockerfile: Dockerfile
+    depends_on:
+      pgsql:
+        condition: service_healthy
+        restart: true
+        required: true
+      web:
+        condition: service_started
+        restart: true
+        required: true
+    image: kayrhancse/book-stack-nginx:latest
+    networks:
+      - web
     ports:
       - "80:80"
-    depends_on:
-      - web
-      - pgsql
-    networks:
-      - web
+    pull_policy: always
   pgsql:
-    image: postgres:16.3-bookworm
-    ports:
-      - '${FORWARD_DB_PORT:-5432}:5432'
     environment:
       POSTGRES_DB: '${DB_DATABASE}'
-      POSTGRES_USER: '${DB_USERNAME}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
-    networks:
-      - web
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-password}'
     healthcheck:
       test:
         - CMD
@@ -42,14 +31,35 @@ services:
         - '-d'
         - '${DB_DATABASE}'
         - '-U'
-        - '${DB_USERNAME}'
+        - 'postgres'
       retries: 3
       timeout: 5s
-
+    image: postgres:16.3-bookworm
+    networks:
+      - web
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  web:
+    build:
+      context: .
+      dockerfile: ./build/web/Dockerfile
+    depends_on:
+      pgsql:
+        condition: service_healthy
+        restart: true
+        required: true
+    image: kayrhancse/book-stack-web:latest
+    networks:
+      - web
+    ports:
+      - "9000:80"
+    pull_policy: always
 networks:
   web:
     driver: bridge
-
 volumes:
-    db_data:
-        driver: local
+  db_data:
+    driver: local

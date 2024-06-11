@@ -21,7 +21,7 @@ services:
     pull_policy: always
   pgsql:
     environment:
-      POSTGRES_DB: '${DB_DATABASE}'
+      POSTGRES_DB: '${DB_DATABASE:-book-stack}'
       POSTGRES_PASSWORD: '${DB_PASSWORD:-password}'
     healthcheck:
       test:

@@ -16,5 +16,4 @@ RUN composer install --optimize-autoloader \
     && php artisan key:generate \
     && php artisan optimize \
     && php artisan storage:link
-EXPOSE 9000
 CMD ["php-fpm"]

@@ -37,8 +37,6 @@ services:
     image: postgres:16.3-bookworm
     networks:
       - web
-    ports:
-      - "5432:5432"
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -59,8 +57,6 @@ services:
     image: kayrhancse/book-stack-web:latest
     networks:
       - web
-    ports:
-      - "9000:80"
     pull_policy: always
 networks:
   web:
